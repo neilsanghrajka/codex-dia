@@ -16,6 +16,16 @@ npx skills add neilsanghrajka/codex-dia@dia
 
 Then restart Codex or reload skills and use `@dia` in a prompt.
 
+## Validate
+
+Run the skill guard before publishing changes:
+
+```bash
+node scripts/validate-skill.mjs
+```
+
+The guard prevents version-pinned bundled plugin cache paths from being reintroduced.
+
 ## Manual Install
 
 Copy `dia/SKILL.md` to:
@@ -23,4 +33,3 @@ Copy `dia/SKILL.md` to:
 ```text
 ~/.codex/skills/dia/SKILL.md
 ```
-

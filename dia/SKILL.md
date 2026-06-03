@@ -30,7 +30,7 @@ Dia bundle id: company.thebrowser.dia
 Dia profile root: /Users/neilsanghrajka/Library/Application Support/Dia/User Data
 Dia preferences: /Users/neilsanghrajka/Library/Application Support/Dia/User Data/Default/Preferences
 Chrome plugin root for helper scripts: /Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/chrome/latest
-Trusted browser-client root: /Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/browser/26.519.41501
+Trusted browser-client root: /Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/chrome/latest
 ```
 
 From the Chrome plugin root above, use `node_repl` to run helper checks:
@@ -168,7 +168,7 @@ scripts/open-chrome-window.js --dry-run --json
 
 ### check-extension-installed.js
 
-This script checks whether the selected Google Chrome profile has the configured extension registered and present, either from installed version directories or a registered unpacked extension path. It exits `0` when installed and enabled, `1` when installed but not enabled, `2` when not installed, and `3` for usage or runtime errors.
+This script checks every usable profile in the configured browser user-data root for the configured extension and reports whether each profile has it registered, installed, and enabled. For Dia, run it with `CODEX_CHROME_USER_DATA_DIR` pointed at the Dia profile root. The JSON output includes the full `profiles` array plus a `selectedProfileDirectory` hint from `Local State` when available. The top-level `installed`, `enabled`, and exit code reflect the selected profile so Dia troubleshooting can decide whether the profile it will launch is actually ready. It exits `0` when the selected profile has the extension installed and enabled, `1` when the selected profile has it installed but not enabled, `2` when the selected profile does not have it installed, and `3` for usage or runtime errors.
 
 From the plugin root, use `node_repl` to run:
 
@@ -182,7 +182,7 @@ Use JSON output when another tool or script needs structured data:
 scripts/check-extension-installed.js --json
 ```
 
-The check reads the configured extension ID from `scripts/extension-id.json`. It detects the Chrome profile from `Local State`, then falls back to the highest-numbered `Profile X` or `Default` directory with `Preferences`. For debugging or tests, override profile selection with `CODEX_CHROME_USER_DATA_DIR=/path/to/chrome-root` or `CODEX_CHROME_PREFERENCES_PATH=/path/to/Profile/Preferences`.
+The check reads the configured extension ID from `scripts/extension-id.json`. By default it scans every `Default` or `Profile X` directory with `Preferences`, and it also marks the profile that `Local State` would have selected. For Dia debugging or tests, override the scanned root with `CODEX_CHROME_USER_DATA_DIR=/Users/neilsanghrajka/Library/Application Support/Dia/User Data` or restrict the output to one profile with `CODEX_CHROME_PREFERENCES_PATH=/path/to/Profile/Preferences`.
 
 ### check-native-host-manifest.js
 
@@ -250,13 +250,13 @@ If the task involves attaching a local file, check for a file input and try the 
 
 These setup details are internal. User-facing progress updates should be less technical in nature. Never mention `Node REPL`, `node_repl`, `REPL`, JavaScript sessions, or module exports unless a user is asking for that exact information. If setup or recovery is needed, describe it naturally as connecting to the browser or retrying the browser connection.
 
-The `browser-client` module is the core entry point for Dia browser use. Use the trusted Browser plugin client at `/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/browser/26.519.41501/scripts/browser-client.mjs`, then select `agent.browsers.get("extension")`. This still controls the Codex Chrome Extension backend, not Computer Use. ALWAYS import it using an absolute path.
+The `browser-client` module is the core entry point for Dia browser use. Use the trusted Chrome plugin client at `/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/chrome/latest/scripts/browser-client.mjs`, then select `agent.browsers.get("extension")`. This still controls the Codex Chrome Extension backend, not Computer Use. ALWAYS import it using an absolute path.
 IMPORTANT: If this path cannot be found, stop and report that this plugin is missing `scripts/browser-client.mjs`. NEVER use the built in `browser-client` library.
 
 Run browser setup code through the Node REPL `js` tool. In this environment the callable tool id typically appears as `mcp__node_repl__js`; `js_reset` only clears state and is not the execution tool. Run this once per fresh `node_repl` session:
 
 ```js
-const { setupBrowserRuntime } = await import("/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/browser/26.519.41501/scripts/browser-client.mjs");
+const { setupBrowserRuntime } = await import("/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/chrome/latest/scripts/browser-client.mjs");
 await setupBrowserRuntime({ globals: globalThis });
 globalThis.browser = await agent.browsers.get("extension");
 ```
@@ -296,7 +296,7 @@ Browser commands are executed by calling the Node REPL `js` tool with JavaScript
 If startup may be retried, use a retry-safe setup cell such as:
 ```js
 if (!globalThis.agent) {
-  const { setupBrowserRuntime } = await import("/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/browser/26.519.41501/scripts/browser-client.mjs");
+  const { setupBrowserRuntime } = await import("/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/chrome/latest/scripts/browser-client.mjs");
   await setupBrowserRuntime({ globals: globalThis });
 }
 if (!globalThis.browser) {
@@ -313,7 +313,7 @@ if (typeof tab === "undefined") {
 If there may not be a selected tab, create a new one instead:
 ```js
 if (!globalThis.agent) {
-  const { setupBrowserRuntime } = await import("/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/browser/26.519.41501/scripts/browser-client.mjs");
+  const { setupBrowserRuntime } = await import("/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/chrome/latest/scripts/browser-client.mjs");
   await setupBrowserRuntime({ globals: globalThis });
 }
 if (!globalThis.browser) {
@@ -332,7 +332,7 @@ After that, keep using the existing `tab` binding. Do not alternate between `tab
 If you already created the bindings in an earlier `node_repl` call in the current session, such as:
 ```js
 if (!globalThis.agent) {
-  const { setupBrowserRuntime } = await import("/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/browser/26.519.41501/scripts/browser-client.mjs");
+  const { setupBrowserRuntime } = await import("/Users/neilsanghrajka/.codex/plugins/cache/openai-bundled/chrome/latest/scripts/browser-client.mjs");
   await setupBrowserRuntime({ globals: globalThis });
 }
 if (!globalThis.browser) {
